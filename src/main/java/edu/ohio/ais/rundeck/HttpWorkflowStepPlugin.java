@@ -180,6 +180,13 @@ public class HttpWorkflowStepPlugin implements StepPlugin, Describable {
                     .renderingOption(StringRenderingConstants.GROUP_NAME,"Authentication")
                     .build())
                 .property(PropertyBuilder.builder()
+                        .string("resource")
+                        .title("OAuth Resource")
+                        .description("OAuth Resource")
+                        .required(false)
+                        .renderingOption(StringRenderingConstants.GROUP_NAME,"Authentication")
+                        .build())
+                .property(PropertyBuilder.builder()
                         .booleanType("checkResponseCode")
                         .title("Check Response Code?")
                         .description("Set if you want to check response code.")
@@ -459,6 +466,7 @@ public class HttpWorkflowStepPlugin implements StepPlugin, Describable {
             String tokenEndpoint = options.containsKey("oauthTokenEndpoint") ? options.get("oauthTokenEndpoint").toString() : null;
             String validateEndpoint = options.containsKey("oauthValidateEndpoint") ? options.get("oauthValidateEndpoint").toString() : null;
             String clientId = options.containsKey("username") ? options.get("username").toString() : null;
+            String resource = options.containsKey("resource") ? options.get("resource").toString() : "";
             String clientSecret = password;
 
 
@@ -480,13 +488,13 @@ public class HttpWorkflowStepPlugin implements StepPlugin, Describable {
                     // update clients on next run.
                     log.trace("Found existing OAuth client with key " + clientKey);
                     client = this.oauthClients.get(clientKey);
-                    client.setCredentials(clientId, clientSecret);
+                    client.setCredentials(clientId, clientSecret, resource);
                     client.setValidateEndpoint(validateEndpoint);
                 } else {
                     // Create a brand new client
                     log.trace("Creating new OAuth client with key " + clientKey);
                     client = new OAuthClient(OAuthClient.GrantType.CLIENT_CREDENTIALS);
-                    client.setCredentials(clientId, clientSecret);
+                    client.setCredentials(clientId, clientSecret, resource);
                     client.setTokenEndpoint(tokenEndpoint);
                     client.setValidateEndpoint(validateEndpoint);
                 }

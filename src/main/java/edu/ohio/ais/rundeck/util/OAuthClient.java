@@ -33,6 +33,9 @@ public class OAuthClient {
     public static final String FORM_CONTENT_TYPE = "application/x-www-form-urlencoded";
 
     public static final String FIELD_GRANT_TYPE = "grant_type";
+    public static final String CLIENT_ID = "client_id";
+    public static final String CLIENT_SECRET = "client_secret";
+    public static final String RESOURCE = "resource";
     public static final String FIELD_ACCESS_TOKEN = "access_token";
 
     public static final Integer STATUS_SUCCESS = 200;
@@ -53,6 +56,7 @@ public class OAuthClient {
 
     String clientId;
     String clientSecret;
+    String resource;
 
     GrantType grantType;
 
@@ -105,10 +109,13 @@ public class OAuthClient {
 
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair(FIELD_GRANT_TYPE, this.grantType.name().toLowerCase()));
+        params.add(new BasicNameValuePair(CLIENT_ID, this.clientId));
+        params.add(new BasicNameValuePair(CLIENT_SECRET, this.clientSecret));
+        params.add(new BasicNameValuePair(RESOURCE, this.resource));
 
         HttpUriRequest request = RequestBuilder.create("POST")
                 .setUri(this.tokenEndpoint)
-                .setHeader(HttpHeaders.AUTHORIZATION, "Basic " + com.dtolabs.rundeck.core.utils.Base64.encode(this.clientId + ":" + this.clientSecret))
+                //.setHeader(HttpHeaders.AUTHORIZATION, "Basic " + com.dtolabs.rundeck.core.utils.Base64.encode( + ":" + this.clientSecret))
                 .setHeader(HttpHeaders.ACCEPT, JSON_CONTENT_TYPE)
                 .setHeader(HttpHeaders.CONTENT_TYPE, FORM_CONTENT_TYPE)
                 .setEntity(new UrlEncodedFormEntity(params)).build();
@@ -217,11 +224,12 @@ public class OAuthClient {
      * @param clientId
      * @param clientSecret
      */
-    public void setCredentials(String clientId, String clientSecret) {
+    public void setCredentials(String clientId, String clientSecret, String resource) {
         log.trace("Setting credentials to " + this.clientId + ":" + this.clientSecret);
 
         this.clientId = clientId;
         this.clientSecret = clientSecret;
+        this.resource = resource;
     }
 
     /**

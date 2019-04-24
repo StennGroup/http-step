@@ -76,6 +76,7 @@ public class HttpWorkflowStepPluginTest {
         options.put("oauthTokenEndpoint", OAuthClientTest.BASE_URI + OAuthClientTest.ENDPOINT_TOKEN);
         options.put("oauthValidateEndpoint", OAuthClientTest.BASE_URI + OAuthClientTest.ENDPOINT_VALIDATE);
         options.put("authentication", HttpWorkflowStepPlugin.AUTH_OAUTH2);
+        options.put("resource", "");
 
         return options;
     }

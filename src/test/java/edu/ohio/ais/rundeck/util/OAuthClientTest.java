@@ -44,7 +44,7 @@ public class OAuthClientTest {
      */
     public OAuthClient setupClient() {
         OAuthClient client = new OAuthClient(OAuthClient.GrantType.CLIENT_CREDENTIALS);
-        client.setCredentials(CLIENT_VALID, CLIENT_SECRET);
+        client.setCredentials(CLIENT_VALID, CLIENT_SECRET, "");
         client.setTokenEndpoint(BASE_URI + ENDPOINT_TOKEN);
         client.setValidateEndpoint(BASE_URI + ENDPOINT_VALIDATE);
 
@@ -186,7 +186,7 @@ public class OAuthClientTest {
     @Test(expected = HttpResponseException.class)
     public void canHandleInvalidCredentials() throws HttpResponseException, IOException, OAuthClient.OAuthException {
         OAuthClient client = setupClient();
-        client.setCredentials(CLIENT_INVALID, CLIENT_SECRET);
+        client.setCredentials(CLIENT_INVALID, CLIENT_SECRET, "");
         client.getAccessToken();
     }
 
@@ -199,7 +199,7 @@ public class OAuthClientTest {
     @Test(expected = OAuthClient.OAuthException.class)
     public void canHandleForeverExpiredToken() throws HttpResponseException, IOException, OAuthClient.OAuthException {
         OAuthClient client = setupClient(ACCESS_TOKEN_FOREVER_EXPIRED);
-        client.setCredentials(CLIENT_FOREVER_EXPIRED, CLIENT_SECRET);
+        client.setCredentials(CLIENT_FOREVER_EXPIRED, CLIENT_SECRET, "");
         client.doTokenValidate();
     }
 
@@ -213,7 +213,7 @@ public class OAuthClientTest {
     public void canHandleMissingValidateEndpoint() throws HttpResponseException, IOException, OAuthClient.OAuthException {
         OAuthClient client = new OAuthClient(OAuthClient.GrantType.CLIENT_CREDENTIALS);
         client.setTokenEndpoint(BASE_URI + ENDPOINT_TOKEN);
-        client.setCredentials(CLIENT_VALID, CLIENT_SECRET);
+        client.setCredentials(CLIENT_VALID, CLIENT_SECRET, "");
         client.doTokenValidate();
 
         assertEquals(client.accessToken, ACCESS_TOKEN_VALID);
@@ -222,7 +222,7 @@ public class OAuthClientTest {
     @Test()
     public void canBuildErrorWithDescription() throws IOException, OAuthClient.OAuthException {
         OAuthClient client = this.setupClient();
-        client.setCredentials(CLIENT_INVALID_GRANT, CLIENT_SECRET);
+        client.setCredentials(CLIENT_INVALID_GRANT, CLIENT_SECRET, "");
 
         try {
             client.doTokenRequest();
@@ -235,7 +235,7 @@ public class OAuthClientTest {
     @Test()
     public void canBuildErrorWithoutDescription() throws IOException, OAuthClient.OAuthException {
         OAuthClient client = this.setupClient();
-        client.setCredentials(CLIENT_INVALID_GRANT_NO_DESCRIPTION, CLIENT_SECRET);
+        client.setCredentials(CLIENT_INVALID_GRANT_NO_DESCRIPTION, CLIENT_SECRET, "");
 
         try {
             client.doTokenRequest();
