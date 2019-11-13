@@ -201,6 +201,20 @@ public class HttpWorkflowStepPlugin implements StepPlugin, Describable {
                         .renderingOption(StringRenderingConstants.GROUP_NAME,"Check Response")
                         .build())
                 .property(PropertyBuilder.builder()
+                        .booleanType("checkResponseBody")
+                        .title("Check Response Body?")
+                        .description("Set if you want to check response body.")
+                        .defaultValue("false")
+                        .renderingOption(StringRenderingConstants.GROUP_NAME,"Check Response")
+                        .build())
+                .property(PropertyBuilder.builder()
+                        .string("responseBodyContains")
+                        .title("Response Body Contains")
+                        .description("Response Body is expected to contain this string, or the step will fail.")
+                        .required(false)
+                        .renderingOption(StringRenderingConstants.GROUP_NAME,"Check Response")
+                        .build())
+                .property(PropertyBuilder.builder()
                         .booleanType("printResponse")
                         .title("Print Response?")
                         .description("Set if the response needs to be printed.")
@@ -286,12 +300,13 @@ public class HttpWorkflowStepPlugin implements StepPlugin, Describable {
         }
         try {
             HttpResponse response = this.getHttpClient(options).execute(request);
+            String responseText = this.getPageContent(response).toString();
 
             //print the response content
             if(options.containsKey("printResponse") && Boolean.parseBoolean(options.get("printResponse").toString()) ||
                     options.containsKey("printResponseToFile") && Boolean.parseBoolean(options.get("printResponseToFile").toString())) {
 
-                String output = this.prettyPrint(response);
+                String output = this.prettyPrint(response, responseText);
 
                 if(Boolean.parseBoolean(options.get("printResponse").toString())) {
                     //print response
@@ -310,7 +325,7 @@ public class HttpWorkflowStepPlugin implements StepPlugin, Describable {
 
             }
 
-                //check response status
+            //check response status
             if(options.containsKey("checkResponseCode") && Boolean.parseBoolean(options.get("checkResponseCode").toString())) {
 
                 if(options.containsKey("responseCode")){
@@ -322,10 +337,22 @@ public class HttpWorkflowStepPlugin implements StepPlugin, Describable {
                     }
 
                 }
-
             }
 
-                // Sometimes we may need to refresh our OAuth token.
+            //check response body
+            if(options.containsKey("checkResponseBody") && Boolean.parseBoolean(options.get("checkResponseBody").toString())) {
+
+                if(options.containsKey("responseBodyContains")){
+                    String responseBodyShouldContain = (String)options.get("responseBodyContains");
+
+                    if(!responseText.contains(responseBodyShouldContain)){
+                        String message = "Error, the response body does not contain the expected substring. The value expected was \"" + responseBodyShouldContain + "\" and the response body was \"" + responseText + "\"";
+                        throw new StepException(message, Reason.HTTPFailure);
+                    }
+                }
+            }
+
+            // Sometimes we may need to refresh our OAuth token.
             if(response.getStatusLine().getStatusCode() == OAuthClient.STATUS_AUTHORIZATION_REQUIRED) {
                 log.debug("Warning: Got authorization required exception from " + request.getURI());
 
@@ -609,7 +636,7 @@ public class HttpWorkflowStepPlugin implements StepPlugin, Describable {
     }
 
     //print response
-    public String prettyPrint(HttpResponse response){
+    public String prettyPrint(HttpResponse response, String outputWithoutFormat){
 
         HttpEntity entity = response.getEntity();
         ContentType contentType;
@@ -621,8 +648,6 @@ public class HttpWorkflowStepPlugin implements StepPlugin, Describable {
                 mimeType = contentType.getMimeType();
             }
         }
-
-        String outputWithoutFormat=getPageContent(response).toString();
 
         String output = "";
 
